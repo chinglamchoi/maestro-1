@@ -1,99 +1,64 @@
-  // The width and height of the captured photo. We will set the
-  // width to the value defined here, but the height will be
-  // calculated based on the aspect ratio of the input stream.
+script>
 
-  var width = 320;    // We will scale the photo width to this
-  var height = 0;     // This will be computed based on the input stream
+var videoObj    = { "video": true },
+    errBack        = function(error){
+        // alert("Video capture error: ", error.code);
+    };
 
-  // |streaming| indicates whether or not we're currently streaming
-  // video from the camera. Obviously, we start at false.
+// Ask the browser for permission to use the Webcam
+if(navigator.getUserMedia){                    // Standard
+    navigator.getUserMedia(videoObj, startWebcam, errBack);
+}else if(navigator.webkitGetUserMedia){        // WebKit
+    navigator.webkitGetUserMedia(videoObj, startWebcam, errBack);
+}else if(navigator.mozGetUserMedia){        // Firefox
+    navigator.mozGetUserMedia(videoObj, startWebcam, errBack);
+};
 
-  var streaming = false;
+function startWebcam(stream){
 
-  // The various HTML elements we need to configure or control. These
-  // will be set by the startup() function.
+    var myOnlineCamera    = getElementById('myOnlineCamera'),
+        video            = myOnlineCamera.querySelectorAll('video'),
+        canvas            = myOnlineCamera.querySelectorAll('canvas');
 
-  var video = null;
-  var canvas = null;
-  var photo = null;
-  var startbutton = null;
+    video.width = video.offsetWidth;
 
-  function startup() {
-    video = document.getElementById('video');
-    canvas = document.getElementById('canvas');
-    photo = document.getElementById('photo');
-    startbutton = document.getElementById('startbutton');
+    if(navigator.getUserMedia){                    // Standard
+        video.src = stream;
+        video.play();
+    }else if(navigator.webkitGetUserMedia){        // WebKit
+        video.src = window.webkitURL.createObjectURL(stream);
+        video.play();
+    }else if(navigator.mozGetUserMedia){        // Firefox
+        video.src = window.URL.createObjectURL(stream);
+        video.play();
+    };
 
-    navigator.mediaDevices.getUserMedia({video: true, audio: false})
-    .then(function(stream) {
-      video.srcObject = stream;
-      video.play();
-    })
-    .catch(function(err) {
-      console.log("An error occurred: " + err);
+    // Click to take the photo
+    $('#webcam-popup .takephoto').click(function(){
+        // Copying the image in a temporary canvas
+        var temp = document.createElement('canvas');
+
+        temp.width  = video.offsetWidth;
+        temp.height = video.offsetHeight;
+
+        var tempcontext = temp.getContext("2d"),
+            tempScale = (temp.height/temp.width);
+
+        temp.drawImage(
+            video,
+            0, 0,
+            video.offsetWidth, video.offsetHeight
+        );
+
+        // Resize it to the size of our canvas
+        canvas.style.height    = parseInt( canvas.offsetWidth * tempScale );
+        canvas.width        = canvas.offsetWidth;
+        canvas.height        = canvas.offsetHeight;
+        var context        = canvas.getContext("2d"),
+            scale        = canvas.width/temp.width;
+        context.scale(scale, scale);
+        context.drawImage(bigimage, 0, 0);
     });
+};
 
-    video.addEventListener('canplay', function(ev){
-      if (!streaming) {
-        height = video.videoHeight / (video.videoWidth/width);
-      
-        // Firefox currently has a bug where the height can't be read from
-        // the video, so we will make assumptions if this happens.
-      
-        if (isNaN(height)) {
-          height = width / (4/3);
-        }
-      
-        video.setAttribute('width', width);
-        video.setAttribute('height', height);
-        canvas.setAttribute('width', width);
-        canvas.setAttribute('height', height);
-        streaming = true;
-      }
-    }, false);
-
-    startbutton.addEventListener('click', function(ev){
-      takepicture();
-      ev.preventDefault();
-    }, false);
-    
-    clearphoto();
-  }
-
-  // Fill the photo with an indication that none has been
-  // captured.
-
-  function clearphoto() {
-    var context = canvas.getContext('2d');
-    context.fillStyle = "#AAA";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    var data = canvas.toDataURL('image/png');
-    photo.setAttribute('src', data);
-  }
-  
-  // Capture a photo by fetching the current contents of the video
-  // and drawing it into a canvas, then converting that to a PNG
-  // format data URL. By drawing it on an offscreen canvas and then
-  // drawing that to the screen, we can change its size and/or apply
-  // other changes before drawing it.
-
-  function takepicture() {
-    var context = canvas.getContext('2d');
-    if (width && height) {
-      canvas.width = width;
-      canvas.height = height;
-      context.drawImage(video, 0, 0, width, height);
-    
-      var data = canvas.toDataURL('image/jpg');
-      photo.setAttribute('src', data);
-      return data;
-    } else {
-      clearphoto();
-    }
-  }
-
-  // Set up our event listener to run the startup process
-  // once loading is complete.
-  window.addEventListener('load', startup, false);
-)();
+</script>
