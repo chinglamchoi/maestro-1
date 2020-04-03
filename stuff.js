@@ -21,7 +21,7 @@ window.alert('hello');
   var startbutton = null;
 
   function startup() {
-    window.alert("hi");
+    window.alert("INSIDE STARTUP()");
     video = document.getElementById('video');
     canvas = document.getElementById('canvas');
     photo = document.getElementById('photo');
@@ -98,16 +98,5 @@ window.alert('hello');
 
   // Set up our event listener to run the startup process
   // once loading is complete.
-  window.addEventListener('load', startup, false);
-)();
-''')
-  display(js)
-  eval_js('startup()')
-  a=input()
-  s=eval_js('take_picture()')
-  binary = b64decode(data.split(',')[1])
-  f=open("/content/drive/My Drive/S4/taichithing/images/"+filename+'.jpg', "wb+")
-  f.write(binary)
-  f.close()
-  return filename
-
+  //window.addEventListener('load', startup, false);
+//}
