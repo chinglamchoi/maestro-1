@@ -21,6 +21,7 @@
   var startbutton = null;
 
   function startup() {
+    window.alert("hi");
     video = document.getElementById('video');
     canvas = document.getElementById('canvas');
     photo = document.getElementById('photo');
